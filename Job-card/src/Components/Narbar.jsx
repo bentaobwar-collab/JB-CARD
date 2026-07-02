@@ -32,12 +32,11 @@ export default function Navbar({user, onLogout}){
   return(
     <nav className="navbar">
       <div className="navbar-left" onClick={handleLogoClick}>
-        <img src="/Black-logo.png" alt="job-logo" width="40" />
+        <img src="/balck photo.png" alt="job-logo" width="40" />
         <span>Copy Cat</span>
       </div>
       <div className="navbar-right">
         <span>{getInitials(displayName)} Hi, {displayName}</span>
-        <button onClick={handleLogout}>Logout</button>
       </div>
     </nav>
 
