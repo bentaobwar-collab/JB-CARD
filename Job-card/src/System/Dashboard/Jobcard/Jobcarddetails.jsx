@@ -304,6 +304,14 @@ const handleMarkComplete = async () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
+        body: JSON.stringify({
+        jobId: id,
+        customerEmail: form.customer_email || job.customer_email,
+        customerName: form.customer_name || job.customer_name,
+        jobTitle: form.title || job.title,
+        jobNumber: job.job_number || `#${job.id}`,
+        workDone: form.work_done || job.work_done,
+      })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to send email");

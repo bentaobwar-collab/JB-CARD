@@ -1,4 +1,5 @@
 const conn = require("../config/db");
+const { sendMail } = require("../services/emailService");
  
 const createJobcard = async (req, res) => {
   try {
@@ -397,31 +398,56 @@ const updateJobCardStatus = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
- 
-const sendJobcardEmail = async (req, res) => {
+ const sendJobcardEmail = async (req, res) => {
   if (!req.user || req.user.role !== "technician") {
     return res.status(403).json({ message: "Forbidden" });
   }
 
   const jobId = req.params.id;
+
   try {
     const jobResult = await conn.query(
-      "SELECT * FROM jobcards WHERE id = $1",
+      `
+      SELECT
+        h.email,
+        h.customer_name,
+        j.job_number,
+        j.title
+      FROM jobcard_history h
+      INNER JOIN jobcards j
+        ON h.jobcard_id = j.id
+      WHERE h.jobcard_id = $1
+      ORDER BY h.id DESC
+      LIMIT 1
+      `,
       [jobId]
     );
+
     const job = jobResult.rows[0];
-    if (!job) return res.status(404).json({ message: "Job not found" });
-    if (!job.email) return res.status(400).json({ message: "Customer email is missing" });
 
-    console.log(`Technician ${req.user.id} requested email send for job ${jobId} to ${job.email}`);
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
 
-    res.json({ success: true, message: `Email send requested to ${job.email}` });
+    if (!job.email) {
+      return res.status(400).json({ message: "Customer email is missing" });
+    }
+const info = await sendMail(job);
+    
+console.log("Email sent:", info);
+
+    res.json({
+      success: true,
+      message: `Email sent successfully to ${job.email}`,
+    });
+
   } catch (err) {
-    console.error("sendJobcardEmail:", err);
-    res.status(500).json({ message: "Failed to send email" });
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to send email",
+    });
   }
 };
- 
 const technicianUpdateJobCard = async (req, res) => {
   const jobId = req.params.id;
   const {
