@@ -282,13 +282,17 @@ const handleMarkComplete = async () => {
     const amount = isCustomer ? form.amount || "" : mpesa.amount;
 
     try {
-      const res  = await fetch(`${API}/payments/mpesa/stk-push`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, amount, jobId: job.id }),
-      });
+      const res = await fetch(`${API}/mpesa/stk`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+  body: JSON.stringify({ phone, amount, jobNumber: job.job_number || `#${job.id}`,
+  }),
+});
       const data = await res.json();
-      setMpesa(m => ({ ...m, loading: false, result: data.success ? "success" : "error", msg: data.message }));
+setMpesa(m => ({ ...m, loading: false, result: data.ResponseCode === "0" ? "success" : "error", msg: data.ResponseDescription || "Something went wrong."
+}));
     } catch {
       setMpesa(m => ({ ...m, loading: false, result: "error", msg: "Request failed. Try again." }));
     }
@@ -590,14 +594,14 @@ const handleMarkComplete = async () => {
                 Once you mark this job as complete it will become read-only.
               </p>
               <button style={s.btnGreen} onClick={handleMarkComplete}>
-                ✅ Mark Job as Complete
+                Mark Job as Complete
               </button>
             </div>
           )}
 
           {jobDone && (
             <div style={{ marginTop: 12, padding: "10px 14px", background: "#E1F5EE", border: "1px solid #5DCAA5", borderRadius: 8, fontSize: 12, color: "#085041" }}>
-              ✅ This job card is completed and is now read-only.
+              This job card is completed and is now read-only.
             </div>
           )}
 
@@ -627,7 +631,7 @@ const handleMarkComplete = async () => {
           </div>
           {mpesa.result === "success" && (
             <div style={{ marginTop: 10, padding: "10px 14px", background: "#E1F5EE", border: "1px solid #5DCAA5", borderRadius: 8, fontSize: 12, color: "#085041" }}>
-              ✓ STK push sent. Ask customer to enter their M-Pesa PIN.
+               STK push sent, enter M-Pesa PIN.
             </div>
           )}
           {mpesa.result === "error" && (
@@ -687,7 +691,6 @@ const handleMarkComplete = async () => {
       {showDelete && (
         <div style={{ marginTop: 16, background: "rgba(0,0,0,0.45)", borderRadius: 12, padding: 32, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: "#fff", borderRadius: 12, padding: 24, maxWidth: 320, width: "90%", textAlign: "center" }}>
-            <p style={{ fontSize: 30, marginBottom: 10 }}>🗑</p>
             <p style={{ fontSize: 15, fontWeight: 600, color: TEXT, marginBottom: 8 }}>Delete job card?</p>
             <p style={{ fontSize: 12, color: MUTED, marginBottom: 18 }}>
               This will permanently delete <strong>{job.job_number || `#${job.id}`}</strong> and cannot be undone.

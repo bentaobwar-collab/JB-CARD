@@ -40,6 +40,7 @@ export default function Sidebar({ user, onLogout }) {
 
   const customerLinks = [
     { label: "Job Cards", path: "/customer", icons: <ClipboardList size={18} /> },
+    { label: "Settings", path: "/settings", icons: <SettingsIcon size={18}/> },
   ]
 
   const links = user?.role === "supervisor"

@@ -1,11 +1,12 @@
 import { useState } from "react";
-import {FaUser,FaLock,FaEye,FaEyeSlash} from "react-icons/fa";
+import axios from "axios";
+import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function Settings({ user }) {
-   const displayName = user?.username
+  const displayName = user?.username
     ? user.username
         .split("_")
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ")
     : "User";
 
@@ -23,21 +24,26 @@ export default function Settings({ user }) {
     confirm: "",
   });
 
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [showCurrent, setShowCurrent]   = useState(false);
+  const [showNew, setShowNew]           = useState(false);
+  const [showConfirm, setShowConfirm]   = useState(false);
 
-   const initials = profile.fullName
+
+  const [profileMsg, setProfileMsg]     = useState({ text: "", type: "" });
+  const [passwordMsg, setPasswordMsg]   = useState({ text: "", type: "" });
+  const [savingProfile, setSavingProfile]   = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  const initials = profile.fullName
     .split(" ")
     .filter(Boolean)
-    .map(n => n[0])
+    .map((n) => n[0])
     .join("")
     .toUpperCase();
- 
+
   const handleProfileChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
-  
 
   const handleDiscard = () => {
     setProfile({
@@ -47,58 +53,100 @@ export default function Settings({ user }) {
       address: user?.address || "",
       role: user?.role || "Technician",
     });
+    setProfileMsg({ text: "", type: "" });
   };
 
-  const handleSave = () => {
-    console.log("Save Profile", profile);
+  const handleSave = async () => {
+    setProfileMsg({ text: "", type: "" });
+    setSavingProfile(true);
 
-    // API CALL HERE
+    try {
+      await axios.put(
+        "/api/auth/update-profile",
+        {
+          fullName: profile.fullName,
+          email:    profile.email,
+          phone:    profile.phone,
+          address:  profile.address,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setProfileMsg({ text: "Profile updated successfully.", type: "success", color: "green" });
+    } catch (err) {
+      setProfileMsg({
+        text: err.response?.data?.error || "Failed to update profile.",
+        type: "error",color: "red"
+      });
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
-  const handlePasswordUpdate = () => {
+  const handlePasswordUpdate = async () => {
+    setPasswordMsg({ text: "", type: "" });
+
+    if (!passwords.current) {
+      return setPasswordMsg({ text: "Please enter your current password.", type: "error" });
+    }
+    if (passwords.newPassword.length < 6) {
+      return setPasswordMsg({ text: "New password must be at least 6 characters.", type: "error" });
+    }
     if (passwords.newPassword !== passwords.confirm) {
-      alert("Passwords do not match");
-      return;
+      return setPasswordMsg({ text: "New passwords do not match.", type: "error" });
     }
 
-    console.log(passwords);
+    setSavingPassword(true);
 
-    // API CALL HERE
+    try {
+      const { data } = await axios.put(
+        "/api/auth/change-password",
+        {
+          oldPassword: passwords.current,
+          newPassword: passwords.newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setPasswordMsg({ text: data.message || "Password updated successfully.", type: "success" ,color: "green"});
+      setPasswords({ current: "", newPassword: "", confirm: "" });
+    } catch (err) {
+      setPasswordMsg({
+        text: err.response?.data?.error || "Failed to update password.",
+        type: "error",color: "red"
+      });
+    } finally {
+      setSavingPassword(false);
+    }
   };
 
   const getStrength = () => {
     let score = 0;
-
-    if (passwords.newPassword.length >= 8) score++;
-    if (/[A-Z]/.test(passwords.newPassword)) score++;
-    if (/[0-9]/.test(passwords.newPassword)) score++;
+    if (passwords.newPassword.length >= 8)          score++;
+    if (/[A-Z]/.test(passwords.newPassword))        score++;
+    if (/[0-9]/.test(passwords.newPassword))        score++;
     if (/[^A-Za-z0-9]/.test(passwords.newPassword)) score++;
-
     return score;
   };
 
   return (
     <div className="settings-container">
 
-      {/* Profile Header */}
-
       <div className="profile-summary">
-
-        <div className="profile-avatar">
-          {initials}
-        </div>
-
+        <div className="profile-avatar">{initials}</div>
         <div>
           <h2>{profile.fullName}</h2>
-
-          <span className="role-badge">
-            {profile.role}
-          </span>
+          <span className="role-badge">{profile.role}</span>
         </div>
-
       </div>
-
-      {/* Personal Information */}
 
       <div className="settings-card">
 
@@ -106,13 +154,18 @@ export default function Settings({ user }) {
           <FaUser />
           <div>
             <h3>Personal Information</h3>
-            <p>Update your account information</p>
+            <p>Update your account details</p>
           </div>
         </div>
 
         <div className="card-body">
-
-          <div className="settings-grid">
+{profileMsg.text && (
+  <p className={`feedback-msg ${profileMsg.type}`}
+    style={{ color: profileMsg.type === "success" ? "green" : "red" }}>
+    {profileMsg.text}
+  </p>
+)}
+<div className="settings-grid">
 
             <div>
               <label>Full Name</label>
@@ -143,17 +196,13 @@ export default function Settings({ user }) {
 
             <div>
               <label>Role</label>
-              <input
-                value={profile.role}
-                disabled
-              />
+              <input value={profile.role} disabled />
             </div>
 
           </div>
 
           <div className="address-field">
             <label>Address</label>
-
             <input
               name="address"
               value={profile.address}
@@ -162,26 +211,20 @@ export default function Settings({ user }) {
           </div>
 
           <div className="action-buttons">
-            <button
-              className="btn-secondary"
-              onClick={handleDiscard}
-            >
+            <button className="btn-secondary" onClick={handleDiscard}>
               Discard
             </button>
-
             <button
               className="btn-primary"
               onClick={handleSave}
+              disabled={savingProfile}
             >
-              Save Changes
+              {savingProfile ? "Saving..." : "Save Changes"}
             </button>
           </div>
 
         </div>
-
       </div>
-
-      {/* Password Section */}
 
       <div className="settings-card">
 
@@ -193,36 +236,26 @@ export default function Settings({ user }) {
         </div>
 
         <div className="card-body">
-
-          <div className="password-group">
+      {passwordMsg.text && (
+  <p className={`feedback-msg ${passwordMsg.type}`}
+    style={{ color: passwordMsg.type === "success" ? "green" : "red" }} >
+    {passwordMsg.text}
+  </p>
+)}
+       <div className="password-group">
             <label>Current Password</label>
-
             <div className="password-input">
-
               <input
                 type={showCurrent ? "text" : "password"}
                 value={passwords.current}
                 onChange={(e) =>
-                  setPasswords({
-                    ...passwords,
-                    current: e.target.value,
-                  })
+                  setPasswords({ ...passwords, current: e.target.value })
                 }
+                placeholder="Enter current password"
               />
-
-              <button
-                type="button"
-                onClick={() =>
-                  setShowCurrent(!showCurrent)
-                }
-              >
-                {showCurrent ? (
-                  <FaEyeSlash />
-                ) : (
-                  <FaEye />
-                )}
+              <button type="button" onClick={() => setShowCurrent(!showCurrent)}>
+                {showCurrent ? <FaEyeSlash /> : <FaEye />}
               </button>
-
             </div>
           </div>
 
@@ -230,73 +263,50 @@ export default function Settings({ user }) {
 
             <div>
               <label>New Password</label>
-
               <div className="password-input">
-
                 <input
                   type={showNew ? "text" : "password"}
                   value={passwords.newPassword}
                   onChange={(e) =>
-                    setPasswords({
-                      ...passwords,
-                      newPassword: e.target.value,
-                    })
+                    setPasswords({ ...passwords, newPassword: e.target.value })
                   }
+                  placeholder="At least 6 characters"
                 />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowNew(!showNew)
-                  }
-                >
-                  {showNew ? (
-                    <FaEyeSlash />
-                  ) : (
-                    <FaEye />
-                  )}
+                <button type="button" onClick={() => setShowNew(!showNew)}>
+                  {showNew ? <FaEyeSlash /> : <FaEye />}
                 </button>
-
               </div>
 
-              <div className="strength-bar">
-                <div
-                  className={`strength-fill strength-${getStrength()}`}
-                />
-              </div>
-
+              {passwords.newPassword.length > 0 && (
+                <div className="strength-wrapper">
+                  <div className="strength-bar">
+                    <div className={`strength-fill strength-${getStrength()}`} />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
               <label>Confirm Password</label>
-
               <div className="password-input">
-
                 <input
                   type={showConfirm ? "text" : "password"}
                   value={passwords.confirm}
                   onChange={(e) =>
-                    setPasswords({
-                      ...passwords,
-                      confirm: e.target.value,
-                    })
+                    setPasswords({ ...passwords, confirm: e.target.value })
                   }
+                  placeholder="Re-enter new password"
                 />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowConfirm(!showConfirm)
-                  }
-                >
-                  {showConfirm ? (
-                    <FaEyeSlash />
-                  ) : (
-                    <FaEye />
-                  )}
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)}>
+                  {showConfirm ? <FaEyeSlash /> : <FaEye />}
                 </button>
-
               </div>
+
+              {passwords.confirm.length > 0 && (
+                <p className={`match-hint ${passwords.newPassword === passwords.confirm ? "match" : "no-match"}`}>
+                  {passwords.newPassword === passwords.confirm ? "✓ Passwords match" : "✗ Passwords do not match"}
+                </p>
+              )}
             </div>
 
           </div>
@@ -305,8 +315,9 @@ export default function Settings({ user }) {
             <button
               className="btn-primary"
               onClick={handlePasswordUpdate}
+              disabled={savingPassword}
             >
-              Update Password
+              {savingPassword ? "Updating..." : "Update Password"}
             </button>
           </div>
 

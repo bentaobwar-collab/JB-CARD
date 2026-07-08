@@ -19,6 +19,8 @@ app.get("/health", (req, res) => {
 app.use("/api/jobcards", jobcardRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/mpesa", require("./src/routes/mpesaRoutes"));
+
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });
 });
