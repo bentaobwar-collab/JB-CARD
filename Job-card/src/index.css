@@ -291,8 +291,9 @@ select {
 
 .login-footer-row {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   margin-bottom: 12px;
+  align-items: center;
 }
 
 .login-submit {
@@ -306,12 +307,6 @@ select {
   color: var(--secondary);
   font-size: 12px;
 }
-
-.forgot-password:hover {
-  color: #1d4ed8;
-  text-decoration: underline;
-}
-
 .login-card button:hover {
   background: #1d4ed8;
   transform: translateY(-2px);
@@ -878,14 +873,13 @@ footer {
   background-color: white;
 }
 .forgot-password {
-  font-size: 12px;
+  font-size: 14px;
   color: #2563EB;
   cursor: pointer;
-  text-align: right;
+  text-align: center;
   margin-top: 6px;
   display: inline-block;
-  transition: color 0.2s;
-  margin-left: auto;
+ 
 }
 
 .forgot-password:hover {

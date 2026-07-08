@@ -269,6 +269,7 @@ export default function Jobcardlist({ user, jobs = [], setJobs }) {
                         className="row-input"
                         value={editForm.scheduleddate || job.scheduleddate || ""}
                         onChange={(e) => handleEditFormChange(job.id, "scheduleddate", e.target.value)}
+                        min={new Date().toISOString().split("T")[0]}
                       />
                     ) : (
                       <div className="editable-cell">
@@ -279,6 +280,7 @@ export default function Jobcardlist({ user, jobs = [], setJobs }) {
                               className="date-input"
                               value={job.scheduleddate}
                               onChange={(e) => handleDateChange(job.id, e.target.value)}
+                              min={new Date().toISOString().split("T")[0]}
                             />
                             <button
                               className="date-confirm-btn"

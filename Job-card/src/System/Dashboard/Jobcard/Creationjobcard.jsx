@@ -275,6 +275,7 @@ export default function Creationjobcard({ user, onCreate }) {
               name="scheduleDate"
               value={form.scheduleDate}
               onChange={handleChange}
+              min={new Date().toISOString().split("T")[0]}
             />
             {errors.scheduleDate && <p className="field-error">{errors.scheduleDate}</p>}
           </div>

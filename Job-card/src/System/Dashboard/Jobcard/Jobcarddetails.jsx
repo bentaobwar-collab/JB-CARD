@@ -487,6 +487,7 @@ setMpesa(m => ({ ...m, loading: false, result: data.ResponseCode === "0" ? "succ
                             style={s.tdInp(done)}
                             value={v.date || ""}
                             onChange={e => updateVisit(i, "date", e.target.value)}
+                            min={new Date().toISOString().split("T")[0]} 
                             disabled={!isTechnician || jobDone}
                           />
                         </td>
@@ -498,6 +499,7 @@ setMpesa(m => ({ ...m, loading: false, result: data.ResponseCode === "0" ? "succ
                               style={s.timeInp(done)}
                               value={v.start_time || ""}
                               onChange={e => updateVisit(i, "start_time", e.target.value)}
+                              min={new Date().toISOString().split("T")[0]} 
                               disabled={!isTechnician || jobDone}
                             />
                           </div>

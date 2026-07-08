@@ -91,7 +91,7 @@ export default function Login({ onLogin }) {
           </div>
 
           <div className="login-footer-row">
-            <p className="forgot-password" onClick={() => navigate("/forgot-password")}>Forgot Password?</p>
+            <p className="forgot-password" onClick={() => navigate("/forgot-password")}>Forgot your Password?</p>
           </div>
 
           <button className="btn-submit login-submit" type="submit">Log In</button>
