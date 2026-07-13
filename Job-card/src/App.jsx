@@ -13,6 +13,8 @@ import Creationjobcard from "./System/Dashboard/Jobcard/Creationjobcard.jsx";
 import Jobcarddetails from "./System/Dashboard/Jobcard/Jobcarddetails.jsx";
 import Jobcardlist from "./System/Dashboard/Jobcard/Jobcardlist.jsx";
 import CustomerPortal from "./System/Dashboard/CustomerPortal.jsx";
+import ForgotPassword from "./System/ForgotPassword.jsx";
+import ResetPassword from "./System/ResetPassword.jsx";
 
 const DashboardLayout = ({ user, onLogout, children }) => (
   <div className="app-layout">
@@ -169,6 +171,8 @@ const handleLogout = () => {
             </DashboardLayout>
           }
         />
+        <Route path="/forgot-password" element={<ForgotPassword />} />  
+        <Route path="/reset-password/:token"  element={<ResetPassword />} />   
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 

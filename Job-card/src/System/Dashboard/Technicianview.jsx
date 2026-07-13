@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { downloadJobCardPdf } from "./Jobcard/pdfUtils.js";
 
 const Technicianview = ({ user, jobs = [], setJobs, onLogout }) => {
   const navigate = useNavigate();
@@ -288,7 +287,7 @@ const isCompleted = selectedJob?.status === "Completed"
                     setSelectedJob(updated)
                     setJobs(jobs.map(j => j.id === updated.id ? updated : j))
                   }}>
-                  ✅ Mark as Complete
+                  Mark as Complete
                 </button>
               </div>
             )}

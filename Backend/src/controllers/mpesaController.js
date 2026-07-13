@@ -55,7 +55,7 @@ const stkPush = async (req, res) => {
       { headers: { Authorization: `Bearer ${token}` } }
     );
 console.log("Safaricom response:", JSON.stringify(data, null, 2));
-res.json(data);
+ return res.json(data);
    } catch (err) {
   console.error("STK Push error:", JSON.stringify(err.response?.data, null, 2) || err.message);
   res.status(500).json({ error: err.response?.data?.errorMessage || "STK Push failed" });

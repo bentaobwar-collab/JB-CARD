@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FiClock } from "react-icons/fi";
-import { downloadJobCardPdf } from "./pdfUtils.js";
 import API from "../../../api";
 
 const STATUS_CONFIG = {
@@ -674,9 +673,31 @@ setMpesa(m => ({ ...m, loading: false, result: data.ResponseCode === "0" ? "succ
               {emailing ? "Sending email..." : "Send Email"}
             </button>
           )}
-          <button style={s.btnPlain} onClick={() => downloadJobCardPdf(job)}>
-             Download PDF
-          </button>
+       <button
+  style={s.btnPlain}
+  onClick={async () => {
+    try {
+      const res = await fetch(`/api/jobcards/${job.id}/pdf`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `JobCard-${job.job_number || job.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download failed:", err);
+    }
+  }}
+>
+  Download PDF
+</button>
           {isSupervisor && (
             <button style={{ ...s.btnPlain, marginLeft: "auto", color: "#A32D2D", borderColor: "#F09595" }}
               onClick={() => setShowDelete(true)}>

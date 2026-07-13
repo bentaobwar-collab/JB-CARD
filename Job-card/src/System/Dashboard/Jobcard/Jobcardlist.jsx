@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-const API = "https://localhost:5000/api";
+import API from "../../../api";
  
 export default function Jobcardlist({ user, jobs = [], setJobs }) {
   const navigate = useNavigate()
