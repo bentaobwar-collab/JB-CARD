@@ -276,26 +276,107 @@ const handleMarkComplete = async () => {
   };
 
   const handleMpesa = async () => {
-    setMpesa(m => ({ ...m, loading: true, result: null }));
-    const phone = isCustomer ? (form.payment_phone || form.phone_number || "") : mpesa.phone;
-    const amount = isCustomer ? form.amount || "" : mpesa.amount;
+  setMpesa(m => ({ ...m, loading: true, result: null, msg: "" }));
 
-    try {
-      const res = await fetch(`${API}/mpesa/stk`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json",
-  Authorization: `Bearer ${localStorage.getItem("token")}`,
-  },
-  body: JSON.stringify({ phone, amount, jobNumber: job.job_number || `#${job.id}`,
-  }),
-});
-      const data = await res.json();
-setMpesa(m => ({ ...m, loading: false, result: data.ResponseCode === "0" ? "success" : "error", msg: data.ResponseDescription || "Something went wrong."
-}));
-    } catch {
-      setMpesa(m => ({ ...m, loading: false, result: "error", msg: "Request failed. Try again." }));
+  const phone  = isCustomer
+    ? (form.payment_phone || form.phone_number || "")
+    : mpesa.phone;
+  const amount = isCustomer ? form.amount || "" : mpesa.amount;
+
+  try {
+    const res = await fetch(`${API}/mpesa/stk`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        phone,
+        amount,
+        jobNumber: job.job_number || `#${job.id}`,
+        jobId:     job.id,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.ResponseCode !== "0") {
+      return setMpesa(m => ({
+        ...m,
+        loading: false,
+        result:  "error",
+        msg:     data.errorMessage || "Failed to send prompt.",
+      }));
     }
-  };
+
+    const checkoutRequestId = data.CheckoutRequestID;
+    setMpesa(m => ({
+      ...m,
+      loading: true,
+      msg: "Prompt sent. Please enter PIN...",
+    }));
+    const pollInterval = setInterval(async () => {
+      try {
+        const pollRes  = await fetch(`${API}/mpesa/status/${checkoutRequestId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        const pollData = await pollRes.json();
+        console.log("Poll Response:", pollData);
+
+        if (pollData.status === "success") {
+          clearInterval(pollInterval);
+          setMpesa(m => ({
+            ...m,
+            loading: false,
+            result:  "success",
+            msg: `Payment of KES ${pollData.amount} received! M-Pesa code: ${pollData.mpesa_code}`,
+          }));
+        } else if (pollData.status === "failed") {
+          clearInterval(pollInterval);
+          setMpesa(m => ({
+            ...m,
+            loading: false,
+            result:  "error",
+            msg: `Payment failed: ${pollData.result_desc || "Customer cancelled or timed out."}`,
+          }));
+        }
+      } catch {
+        clearInterval(pollInterval);
+        setMpesa(m => ({
+          ...m,
+          loading: false,
+          result:  "error",
+          msg: "Connection error while checking payment.",
+        }));
+      }
+    }, 3000);
+
+    setTimeout(() => {
+      clearInterval(pollInterval);
+      setMpesa(m => {
+        if (m.result === null) {
+          return {
+            ...m,
+            loading: false,
+            result:  "error",
+            msg: "Payment timed out. Please try again.",
+          };
+        }
+        return m;
+      });
+    }, 6000);
+
+  } catch {
+    setMpesa(m => ({
+      ...m,
+      loading: false,
+      result: "error",
+      msg: "Request failed. Try again.",
+    }));
+  }
+};
 
   const handleSendEmail = async () => {
     if (!isTechnician) return;
@@ -630,20 +711,23 @@ setMpesa(m => ({ ...m, loading: false, result: data.ResponseCode === "0" ? "succ
               {mpesa.loading ? "Sending prompt..." : "Send M-Pesa Prompt"}
             </button>
           </div>
-          {mpesa.result === "success" && (
-            <div style={{ marginTop: 10, padding: "10px 14px", background: "#E1F5EE", border: "1px solid #5DCAA5", borderRadius: 8, fontSize: 12, color: "#085041" }}>
-               STK push sent, enter M-Pesa PIN.
-            </div>
-          )}
-          {mpesa.result === "error" && (
-            <div style={{ marginTop: 10, padding: "10px 14px", background: "#FCEBEB", border: "1px solid #F09595", borderRadius: 8, fontSize: 12, color: "#791F1F" }}>
-              ⚠ {mpesa.msg || "Something went wrong."}
-            </div>
-          )}
+{mpesa.loading && mpesa.msg && (
+  <div style={{ marginTop: 10, padding: "10px 14px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 8, fontSize: 12, color: "#1D4ED8" }}>
+    {mpesa.msg}
+  </div>
+)}
+{!mpesa.loading && mpesa.result === "success" && (
+  <div style={{ marginTop: 10, padding: "10px 14px", background: "#E1F5EE", border: "1px solid #5DCAA5", borderRadius: 8, fontSize: 12, color: "#085041" }}>
+    {mpesa.msg}
+  </div>
+)}
+{!mpesa.loading && mpesa.result === "error" && (
+  <div style={{ marginTop: 10, padding: "10px 14px", background: "#FCEBEB", border: "1px solid #F09595", borderRadius: 8, fontSize: 12, color: "#791F1F" }}>
+    {mpesa.msg}
+  </div>
+)}
         </Section>
         )}
-
-
         <Section label="Signatures" noBorder>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             {["Customer Signature", "Supervisor Signature"].map(label => (
@@ -673,6 +757,29 @@ setMpesa(m => ({ ...m, loading: false, result: data.ResponseCode === "0" ? "succ
               {emailing ? "Sending email..." : "Send Email"}
             </button>
           )}
+          {isSupervisor && (
+  <button
+    style={{ ...s.btnPlain, color: "#0F6E56", borderColor: "#5DCAA5" }}
+    onClick={async () => {
+      try {
+        const res = await fetch(`/api/jobcards/${job.id}/send-assignment-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+        showAlert("success", data.message || "Assignment email sent!");
+      } catch (err) {
+        showAlert("error", err.message || "Failed to send email.");
+      }
+    }}
+  >
+    Send Email
+  </button>
+)}
        <button
   style={s.btnPlain}
   onClick={async () => {

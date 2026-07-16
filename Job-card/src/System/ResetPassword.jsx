@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Link } from "react-router-dom";
 import API from "../api";
 export default function ResetPassword() {
   const { token } = useParams();
@@ -10,7 +11,24 @@ export default function ResetPassword() {
   const [msg, setMsg]         = useState("");
   const [error, setError]     = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate              = useNavigate();
+  const [tokenValid, setTokenValid] = useState(null);
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+     const verifyToken = async () => {
+    try {
+      await axios.get(
+        `${API}/auth/reset-password/${token}`
+      );
+
+      setTokenValid(true);
+    } catch {
+      setTokenValid(false);
+    }
+  };
+
+  verifyToken();
+}, [token]);
 
   const handleSubmit = async () => {
     setMsg(""); setError("");
@@ -33,6 +51,25 @@ export default function ResetPassword() {
       setLoading(false);
     }
   };
+  if (tokenValid === false) {
+  return (
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <h2>Invalid Reset Link</h2>
+
+        <p>
+          This password reset link is invalid.
+        </p>
+        <div className="auth-footer"> 
+        <Link to="/login">
+                Back to Login
+              </Link>
+              </div>
+      </div>
+    </div>
+    
+  );
+}
 
   return (
     <div style={styles.container}>

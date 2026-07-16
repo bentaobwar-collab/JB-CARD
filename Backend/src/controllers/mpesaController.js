@@ -1,4 +1,5 @@
 const axios = require("axios");
+const paymentStore = {};
 const getAccessToken = async () => {
   const auth = Buffer.from(
     `${process.env.MPESA_CONSUMER_KEY}:${process.env.MPESA_CONSUMER_SECRET}`
@@ -8,15 +9,15 @@ const getAccessToken = async () => {
     "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
     { headers: { Authorization: `Basic ${auth}` } }
   );
-
   return data.access_token;
 };
 
 const stkPush = async (req, res) => {
-  const { phone: rawPhone, amount, jobNumber } = req.body;
-  const phone = rawPhone.startsWith("0")
-    ? "254" + rawPhone.slice(1)
-    : rawPhone;
+  console.log("STK Push request body:", req.body);
+  const { phone: rawPhone, amount, jobNumber, jobId } = req.body;
+
+  const cleaned = rawPhone.replace(/\s+/g, "");
+  const phone   = cleaned.startsWith("0") ? "254" + cleaned.slice(1) : cleaned;
 
   const shortCode = process.env.MPESA_BUSINESS_SHORT_CODE;
   const passKey   = process.env.MPESA_PASS_KEY;
@@ -31,8 +32,6 @@ const stkPush = async (req, res) => {
     ("0" + date.getSeconds()).slice(-2);
 
   const password = Buffer.from(shortCode + passKey + timestamp).toString("base64");
-
-  console.log("STK Push payload:", { phone, amount, shortCode, timestamp });
 
   try {
     const token = await getAccessToken();
@@ -54,31 +53,69 @@ const stkPush = async (req, res) => {
       },
       { headers: { Authorization: `Bearer ${token}` } }
     );
-console.log("Safaricom response:", JSON.stringify(data, null, 2));
- return res.json(data);
-   } catch (err) {
-  console.error("STK Push error:", JSON.stringify(err.response?.data, null, 2) || err.message);
-  res.status(500).json({ error: err.response?.data?.errorMessage || "STK Push failed" });
-}
+
+    console.log("Safaricom response:", JSON.stringify(data, null, 2));
+
+    if (data.ResponseCode === "0") {
+      paymentStore[data.CheckoutRequestID] = {
+        status:      "pending",
+        amount,
+        phone,
+        mpesa_code:  null,
+        result_desc: null,
+      };
+    }
+
+    return res.json(data);
+  } catch (err) {
+    console.error("STK Push error:", err.response?.data || err.message);
+    return res.status(500).json({
+      error: err.response?.data?.errorMessage || "STK Push failed"
+    });
+  }
 };
 
 const mpesaCallback = async (req, res) => {
   const callbackData = req.body.Body?.stkCallback;
-
   if (!callbackData) return res.json({ ResultCode: 0, ResultDesc: "Accepted" });
 
-  if (callbackData.ResultCode === 0) {
-    const meta      = callbackData.CallbackMetadata.Item;
+  const { CheckoutRequestID, ResultCode, ResultDesc, CallbackMetadata } = callbackData;
+
+  if (ResultCode === 0) {
+    const meta      = CallbackMetadata.Item;
     const amount    = meta.find(i => i.Name === "Amount")?.Value;
     const mpesaCode = meta.find(i => i.Name === "MpesaReceiptNumber")?.Value;
     const phone     = meta.find(i => i.Name === "PhoneNumber")?.Value;
 
-    console.log("✅ Payment received:", { amount, mpesaCode, phone });
+    console.log("Payment received:", { amount, mpesaCode, phone });
+
+    paymentStore[CheckoutRequestID] = {
+      status:      "success",
+      amount,
+      phone,
+      mpesa_code:  mpesaCode,
+      result_desc: ResultDesc,
+    };
   } else {
-    console.log("❌ Payment failed:", callbackData.ResultDesc);
+    console.log("Payment failed:", ResultDesc);
+
+    paymentStore[CheckoutRequestID] = {
+      status:      "failed",
+      mpesa_code:  null,
+      result_desc: ResultDesc,
+    };
   }
 
   res.json({ ResultCode: 0, ResultDesc: "Accepted" });
 };
 
-module.exports = { stkPush, mpesaCallback };
+const checkPaymentStatus = async (req, res) => {
+  const { checkoutRequestId } = req.params;
+  const record = paymentStore[checkoutRequestId];
+
+  if (!record) return res.json({ status: "pending" });
+
+  res.json(record);
+};
+
+module.exports = { stkPush, mpesaCallback, checkPaymentStatus };

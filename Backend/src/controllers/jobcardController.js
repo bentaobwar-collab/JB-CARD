@@ -1,5 +1,5 @@
 const conn = require("../config/db");
-const { sendMail } = require("../services/emailService");
+const { sendMail, sendAssignmentMail } = require("../services/emailService");
  
 const createJobcard = async (req, res) => {
   try {
@@ -650,7 +650,50 @@ const getJobcardsByCustomer = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch customer job cards" });
   }
 };
- 
+ const sendAssignmentEmail = async (req, res) => {
+  if (!req.user || req.user.role !== "supervisor") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const jobId = req.params.id;
+
+  try {
+    const result = await conn.query(
+      `SELECT
+         jc.job_number,
+         jc.title,
+         jc.description,
+         jc.location,
+         jc.scheduleddate,
+         jc.customer_name,
+         jc.assignedto,
+         jc.supervisor_name,
+         u.email AS technician_email
+       FROM jobcards jc
+       LEFT JOIN users u ON u.id = jc.technician_id
+       WHERE jc.id = $1`,
+      [jobId]
+    );
+
+    const job = result.rows[0];
+    if (!job) return res.status(404).json({ message: "Job card not found" });
+
+    if (!job.technician_email) {
+      return res.status(400).json({ message: "Technician email not found" });
+    }
+
+    await sendAssignmentMail(job);
+
+    res.json({
+      success: true,
+      message: `Assignment email sent to ${job.technician_email}`,
+    });
+
+  } catch (err) {
+    console.error("sendAssignmentEmail error:", err.message);
+    res.status(500).json({ message: "Failed to send assignment email" });
+  }
+};
 module.exports = {
   createJobcard,
   getJobcards,
@@ -663,5 +706,6 @@ module.exports = {
   getJobcardsByCustomer,
   technicianUpdateJobCard,
   sendJobcardEmail,
+  sendAssignmentEmail,
   deleteJobCard
 };

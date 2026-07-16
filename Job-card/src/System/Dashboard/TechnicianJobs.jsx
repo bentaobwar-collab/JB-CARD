@@ -74,50 +74,36 @@ const statusClass = (raw) => {
             <table className="jobcard-table">
               <thead>
                 <tr>
-                  <th>Title</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {assignedJobs.map((job) => (
-                  <tr key={job.id}>
-                    <td>{job.title}</td>
-                    <td>
-                      <span className={`status ${statusClass(job.status)}`}>
+   <th>Title</th>
+   <th>Status</th>
+    <th>Date</th>
+    <th>Actions</th>
+    </tr>
+   </thead>
+    <tbody>
+   {assignedJobs.map((job) => (
+     <tr key={job.id}>
+  <td>{job.title}</td>
+    <td>
+   <span className={`status ${statusClass(job.status)}`}>
   {formatStatus(job.status)}
 </span>
-                      
-                    </td>
-                    <td>{job.scheduleddate?.split("T")[0]}</td>
-                    <td>
-                      <div className="action-buttons">
-                        <button
-                          className="btn-view"
-                          onClick={() => navigate(`/technician/job/${job.id}`)}
-                        >
-                          View
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p
-              style={{
-                padding: "20px",
-                textAlign: "center",
-                color: "var(--text-light)",
-              }}
-            >
-              No job cards assigned yet.
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
+  </td>
+   <td>{job.scheduleddate?.split("T")[0]}</td>
+  <td>
+   <div className="action-buttons">
+ <button className="btn-view" onClick={() => navigate(`/technician/job/${job.id}`)}> View
+   </button>
+ </div>
+   </td></tr>
+  ))}
+ </tbody>
+</table>
+ ) : (
+ <p style={{ padding: "20px",textAlign: "center",color: "var(--text-light)", }}> No job cards assigned yet.</p>
+  )}
+</div>
+</div>
+</div>
   );
 }

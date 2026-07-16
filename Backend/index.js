@@ -7,6 +7,7 @@ require("dotenv").config();
 const authRoutes = require("./src/routes/authRoutes");
 const jobcardRoutes = require("./src/routes/jobcardRoutes");
 const userRoutes = require("./src/routes/userRoutes");
+const mpesaRoutes = require("./src/routes/mpesaRoutes");
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.get("/health", (req, res) => {
 app.use("/api/jobcards", jobcardRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/mpesa", require("./src/routes/mpesaRoutes"));
+app.use("/api/mpesa", mpesaRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });

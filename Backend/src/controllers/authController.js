@@ -278,12 +278,44 @@ const resetPassword = async (req, res) => {
     });
   }
 };
+const validateResetToken = async (req, res) => {
+  try {
+    const { token } = req.params;
 
+    const result = await conn.query(
+      `
+      SELECT id
+      FROM users
+      WHERE reset_token = $1
+      AND reset_token_expires > NOW()
+      `,
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({
+        valid: false,
+        message: "Invalid or expired token",
+      });
+    }
+
+    res.json({
+      valid: true,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
 module.exports = {
   login,
   updateProfile,
   changePassword,
   forgotPassword,
   resetPassword,
+  validateResetToken,
 };
 

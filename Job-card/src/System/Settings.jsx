@@ -166,50 +166,35 @@ export default function Settings({ user }) {
   </p>
 )}
 <div className="settings-grid">
-
-            <div>
-              <label>Full Name</label>
-              <input
-                name="fullName"
-                value={profile.fullName}
-                onChange={handleProfileChange}
-              />
-            </div>
-
-            <div>
-              <label>Phone Number</label>
-              <input
-                name="phone"
-                value={profile.phone}
-                onChange={handleProfileChange}
-              />
-            </div>
-
-            <div>
-              <label>Email Address</label>
-              <input
-                name="email"
-                value={profile.email}
-                onChange={handleProfileChange}
-              />
-            </div>
-
-            <div>
-              <label>Role</label>
-              <input value={profile.role} disabled />
-            </div>
-
+<div><label>Full Name</label>
+<input
+  name="fullName"
+ value={profile.fullName}
+   onChange={handleProfileChange} />
+</div>
+ <div><label>Phone Number</label>
+ <input
+    name="phone"
+   value={profile.phone}
+   onChange={handleProfileChange}
+    />
+  </div>
+ <div><label>Email Address</label>
+ <input
+  name="email"
+  value={profile.email}
+  onChange={handleProfileChange}
+   />
+   </div>
+<div><label>Role</label>
+<input value={profile.role} disabled /> </div>
+</div>
+<div className="address-field"><label>Address</label>
+  <input
+  name="address"
+    value={profile.address}
+   onChange={handleProfileChange}/>
           </div>
-
-          <div className="address-field">
-            <label>Address</label>
-            <input
-              name="address"
-              value={profile.address}
-              onChange={handleProfileChange}
-            />
-          </div>
-
           <div className="action-buttons">
             <button className="btn-secondary" onClick={handleDiscard}>
               Discard

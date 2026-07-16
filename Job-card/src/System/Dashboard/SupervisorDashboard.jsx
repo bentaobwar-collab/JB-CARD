@@ -79,7 +79,7 @@ const SupervisorDashboard = ({ user, jobs = [] }) => {
       <div className="actions-col">
         <div className="action-row"
           onClick={() => navigate("/supervisor/create-job")}>
-          <div className="action-icon">➕</div>
+          <div className="action-icon"></div>
           <div className="action-text">
             <p className="action-title">Create New Job Card</p>
             <p className="action-desc">
