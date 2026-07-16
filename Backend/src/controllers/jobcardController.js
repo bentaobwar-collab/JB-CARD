@@ -1,5 +1,6 @@
 const conn = require("../config/db");
 const { sendMail, sendAssignmentMail } = require("../services/emailService");
+const { generateJobCardPdfFile } = require("./pdfController");
  
 const createJobcard = async (req, res) => {
   try {
@@ -681,9 +682,8 @@ const getJobcardsByCustomer = async (req, res) => {
     if (!job.technician_email) {
       return res.status(400).json({ message: "Technician email not found" });
     }
-
-    await sendAssignmentMail(job);
-
+    const pdfPath = await generateJobCardPdfFile(jobId);
+    await sendAssignmentMail(job, pdfPath);
     res.json({
       success: true,
       message: `Assignment email sent to ${job.technician_email}`,

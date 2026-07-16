@@ -13,7 +13,6 @@ const getAccessToken = async () => {
 };
 
 const stkPush = async (req, res) => {
-  console.log("STK Push request body:", req.body);
   const { phone: rawPhone, amount, jobNumber, jobId } = req.body;
 
   const cleaned = rawPhone.replace(/\s+/g, "");
@@ -76,6 +75,10 @@ const stkPush = async (req, res) => {
 };
 
 const mpesaCallback = async (req, res) => {
+  console.log(
+  "M-Pesa Callback:",
+  JSON.stringify(req.body, null, 2)
+);
   const callbackData = req.body.Body?.stkCallback;
   if (!callbackData) return res.json({ ResultCode: 0, ResultDesc: "Accepted" });
 
@@ -108,14 +111,83 @@ const mpesaCallback = async (req, res) => {
 
   res.json({ ResultCode: 0, ResultDesc: "Accepted" });
 };
+const stkQuery = async (checkoutRequestId) => {
+  const token = await getAccessToken();
 
+  const shortCode = process.env.MPESA_BUSINESS_SHORT_CODE;
+  const passKey = process.env.MPESA_PASS_KEY;
+
+  const date = new Date();
+  const timestamp =
+    date.getFullYear() +
+    ("0" + (date.getMonth() + 1)).slice(-2) +
+    ("0" + date.getDate()).slice(-2) +
+    ("0" + date.getHours()).slice(-2) +
+    ("0" + date.getMinutes()).slice(-2) +
+    ("0" + date.getSeconds()).slice(-2);
+
+  const password = Buffer.from(
+    shortCode + passKey + timestamp
+  ).toString("base64");
+
+  const { data } = await axios.post(
+    "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
+    {
+      BusinessShortCode: shortCode,
+      Password: password,
+      Timestamp: timestamp,
+      CheckoutRequestID: checkoutRequestId,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return data;
+};
 const checkPaymentStatus = async (req, res) => {
-  const { checkoutRequestId } = req.params;
-  const record = paymentStore[checkoutRequestId];
+  try {
+    const { checkoutRequestId } = req.params;
 
-  if (!record) return res.json({ status: "pending" });
+    const result = await stkQuery(checkoutRequestId);
 
-  res.json(record);
+    console.log("STK Query Result:", result);
+
+    if (result.ResultCode === "0") {
+      return res.json({
+        status: "success",
+        result_desc: result.ResultDesc,
+      });
+    }
+
+    if (
+      result.ResultCode === "1032" ||
+      result.ResultCode === "1037"
+    ) {
+      return res.json({
+        status: "failed",
+        result_desc: result.ResultDesc,
+      });
+    }
+
+    return res.json({
+      status: "pending",
+      result_desc: result.ResultDesc,
+    });
+
+  } catch (err) {
+    console.error(
+      "STK Query Error:",
+      err.response?.data || err.message
+    );
+
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to query transaction",
+    });
+  }
 };
 
 module.exports = { stkPush, mpesaCallback, checkPaymentStatus };

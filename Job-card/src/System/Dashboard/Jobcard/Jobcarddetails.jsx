@@ -351,7 +351,7 @@ const handleMarkComplete = async () => {
           msg: "Connection error while checking payment.",
         }));
       }
-    }, 3000);
+    }, 15000);
 
     setTimeout(() => {
       clearInterval(pollInterval);
@@ -366,7 +366,7 @@ const handleMarkComplete = async () => {
         }
         return m;
       });
-    }, 6000);
+    }, 120000);
 
   } catch {
     setMpesa(m => ({

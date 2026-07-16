@@ -43,7 +43,7 @@ const sendMail = async (job) => {
 
   return info;
 };
-const technicianMailOptions = (job) => ({
+const technicianMailOptions = (job, pdfPath) => ({
   from: process.env.EMAIL_USER,
   to: job.technician_email,
   subject: `Job Assignment: ${job.job_number} — ${job.title}`,
@@ -51,22 +51,19 @@ const technicianMailOptions = (job) => ({
     <h2>Dear <strong>${formatCustomerName(job.assignedto)}</strong>,</h2>
 
     <p>You have been assigned a new job card. Please review the details below and attend to it promptly.</p>
-
-    <p><strong>Job Number:</strong> ${job.job_number}</p>
-    <p><strong>Job Title:</strong> ${job.title}</p>
-    <p><strong>Customer:</strong> ${formatCustomerName(job.customer_name)}</p>
-    <p><strong>Location:</strong> ${job.location || "—"}</p>
-    <p><strong>Description:</strong> ${job.description || "—"}</p>
-
-
-    <br/>
     <p>Ensure to log in to the system to view the full job card and update your progress.</p>
    
   `,
+   attachments: [
+    {
+      filename: `JobCard-${job.job_number}.pdf`,
+      path: pdfPath,
+    },
+  ],
 });
 
-const sendAssignmentMail = async (job) => {
-  const options = technicianMailOptions(job);
+const sendAssignmentMail = async (job, pdfPath) => {
+  const options = technicianMailOptions(job, pdfPath);
   const info = await transporter.sendMail(options);
   console.log("Assignment email sent:", info.messageId);
   return info;
