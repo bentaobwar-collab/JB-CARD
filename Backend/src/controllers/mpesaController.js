@@ -150,14 +150,17 @@ const stkQuery = async (checkoutRequestId) => {
 const checkPaymentStatus = async (req, res) => {
   try {
     const { checkoutRequestId } = req.params;
-
-    const result = await stkQuery(checkoutRequestId);
+     const result = await stkQuery(checkoutRequestId);
 
     console.log("STK Query Result:", result);
+    const stored = paymentStore[checkoutRequestId] || {};
+    console.log("Stored Payment:", stored);
 
     if (result.ResultCode === "0") {
       return res.json({
-        status: "success",
+        status:      "success",
+        amount:      stored.amount      || result.Amount,
+        mpesa_code:  stored.mpesa_code  || result.MpesaReceiptNumber,
         result_desc: result.ResultDesc,
       });
     }
