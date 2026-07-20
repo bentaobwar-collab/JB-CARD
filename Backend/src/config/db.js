@@ -17,9 +17,6 @@ conn.query("SELECT NOW()")
     console.error("❌ Database Connection Failed");
     console.error(err.message);
   });
-
-// export default conn
-
 module.exports = conn;
 
 
