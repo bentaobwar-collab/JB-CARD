@@ -331,7 +331,7 @@ const handleMarkComplete = async () => {
             ...m,
             loading: false,
             result:  "success",
-            msg: `Payment of KES ${pollData.amount} received!`,
+            msg: `Payment of KES ${pollData.amount} has been received!`,
           }));
         } else if (pollData.status === "failed") {
           clearInterval(pollInterval);
