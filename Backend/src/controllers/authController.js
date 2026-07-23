@@ -135,6 +135,12 @@ const changePassword = async (req, res) => {
     });
   }
 };
+const formatCustomerName = (name = "") => {
+  return name
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -184,6 +190,12 @@ const expiry = new Date(
         pass: process.env.APP_PASSWORD,
       },
     });
+    const formatName = (name = "") => {
+  return name
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 
     await transporter.sendMail({
       from: `"Job card system" <${process.env.EMAIL_USER}>`,
@@ -191,7 +203,7 @@ const expiry = new Date(
       subject: "Password Reset Request",
       html: `
         <div style="font-family: Arial, sans-serif;">
-        <h2>Hello ${user.username || "User"},</h2>
+        <h2> Dear ${formatName(user.username || "User")},</h2>
         <p>Your request has been received to reset your password.</p>
          <p> Click the button below to create a new password:</p>
            <p>
