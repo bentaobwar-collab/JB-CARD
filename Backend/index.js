@@ -8,6 +8,7 @@ const authRoutes = require("./src/routes/authRoutes");
 const jobcardRoutes = require("./src/routes/jobcardRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const mpesaRoutes = require("./src/routes/mpesaRoutes");
+const supervisorRoutes = require("./src/routes/supervisorRoutes");
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use("/api/jobcards", jobcardRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/mpesa", mpesaRoutes);
+app.use("/api/supervisor", supervisorRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });

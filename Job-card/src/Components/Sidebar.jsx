@@ -1,7 +1,7 @@
 import { useState} from "react";
 import {useNavigate ,useLocation} from "react-router-dom";
 import { LayoutDashboard,ClipboardList,BriefcaseBusiness,FileText,FolderOpen,Settings as SettingsIcon,
-          LogOut } from "lucide-react";
+          LogOut, Users} from "lucide-react";
 
 export default function Sidebar({ user, onLogout }) {
   const navigate = useNavigate()
@@ -28,8 +28,9 @@ export default function Sidebar({ user, onLogout }) {
     { label: "Dashboard", path: "/supervisor", icons:<LayoutDashboard size= {18}  />},
     { label: "All Job Cards", path: "/supervisor/job-list", icons:<ClipboardList size = {18} /> },
     { label: "Create Job Card", path: "/supervisor/create-job", icons: <BriefcaseBusiness size={18} />},
+    { label: "Management", path: "/supervisor/manage", icons: <Users size={18} /> },
     { label: "Settings", path: "/settings", icons: <SettingsIcon size={18} /> },
-    
+     
   ]
 
   const technicianLinks = [

@@ -13,9 +13,9 @@ import Creationjobcard from "./System/Dashboard/Jobcard/Creationjobcard.jsx";
 import Jobcarddetails from "./System/Dashboard/Jobcard/Jobcarddetails.jsx";
 import Jobcardlist from "./System/Dashboard/Jobcard/Jobcardlist.jsx";
 import CustomerPortal from "./System/Dashboard/CustomerPortal.jsx";
+import ManagePage from "./System/Dashboard/ManagePage.jsx";
 import ForgotPassword from "./System/ForgotPassword.jsx";
 import ResetPassword from "./System/ResetPassword.jsx";
-
 const DashboardLayout = ({ user, onLogout, children }) => (
   <div className="app-layout">
     <Sidebar user={user} onLogout={onLogout} />
@@ -111,6 +111,14 @@ const handleLogout = () => {
               <Jobcarddetails user={user} jobs={jobs} setJobs={setJobs} />
             </DashboardLayout>
           }
+        />
+        <Route
+          path="/supervisor/manage"
+          element={
+           <DashboardLayout user={user} onLogout={handleLogout}>
+             <ManagePage user={user} />
+            </DashboardLayout>
+           }
         />
 
         <Route
