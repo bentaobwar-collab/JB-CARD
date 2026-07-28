@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { FilePlus, ClipboardList,Users} from "lucide-react"
 
 const SupervisorDashboard = ({ user, jobs = [] }) => {
   const navigate = useNavigate();
@@ -79,7 +80,7 @@ const SupervisorDashboard = ({ user, jobs = [] }) => {
       <div className="actions-col">
         <div className="action-row"
           onClick={() => navigate("/supervisor/create-job")}>
-          <div className="action-icon"></div>
+          <div className="action-icon">< FilePlus  width= "28px" height= "28px" color="#4f46e5" /></div>
           <div className="action-text">
             <p className="action-title">Create New Job Card</p>
             <p className="action-desc">
@@ -91,7 +92,7 @@ const SupervisorDashboard = ({ user, jobs = [] }) => {
 
         <div className="action-row"
           onClick={() => navigateToFilteredList("All")}> 
-          <div className="action-icon">📋</div>
+          <div className = "action-icon3">< ClipboardList width = "28px" height ="28px" color ="#22c55e" /></div>
           <div className="action-text">
             <p className="action-title">View All Job Cards</p>
             <p className="action-desc">
@@ -106,7 +107,7 @@ const SupervisorDashboard = ({ user, jobs = [] }) => {
             e.stopPropagation()
             navigate("/settings")
           }}>
-           👤 Manage Settings
+           < Users color ="#2563eb"size= {20}/> Manage Settings
         </button>
       </div>
 

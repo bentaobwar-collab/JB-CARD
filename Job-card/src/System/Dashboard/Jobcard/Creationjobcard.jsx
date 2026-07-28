@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-const API = "https://localhost:5000/api";
-
+import { Users,CircleCheck } from "lucide-react"
+import API from "../../../api"; 
 export default function Creationjobcard({ user, onCreate }) {
   const navigate = useNavigate()
   const [success, setSuccess] = useState(false)
@@ -112,7 +112,7 @@ export default function Creationjobcard({ user, onCreate }) {
     return (
       <div className="main-content">
         <div className="success-screen">
-          <div className="success-icon-big">✅</div>
+          <div className="success-icon-big"><CircleCheck color="green" size = {48} /></div>
           <h2>Job Card Created!</h2>
           <p>Redirecting to job list...</p>
         </div>
@@ -297,7 +297,7 @@ export default function Creationjobcard({ user, onCreate }) {
         </div>
 
         <div className="created-by-row">
-          <span>👤</span>
+          < Users color ="#2563eb"size= {20}/>
           <p>Created by <strong>
             {user?.username
               ? user.username.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")

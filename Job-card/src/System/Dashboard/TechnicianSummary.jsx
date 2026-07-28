@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { FileText, Clock, Users} from "lucide-react";
  
 export default function TechnicianSummary({ user, jobs = [] }) {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export default function TechnicianSummary({ user, jobs = [] }) {
       <div className="page-header">
         <div>
           <h1>Technician Dashboard</h1>
-          <p>Welcome back, <strong>
+        <p>Welcome back, <strong size ={14}>
             {(user?.username || "")
               .split("_")
               .map(w => w.charAt(0).toUpperCase() + w.slice(1))
@@ -76,9 +77,9 @@ export default function TechnicianSummary({ user, jobs = [] }) {
       <div className="section-label" style={{ marginTop: "32px" }}>Quick Actions</div>
       <div className="actions-col">
         <div className="action-row" onClick={() => navigate("/technician/jobs")}>
-          <div className="action-icon">📋</div>
+          <div className="action-icon1"> < FileText color= "#22c55e" width= "28px" height= "28px"/></div>
           <div className="action-text">
-            <p className="action-title">View All My Jobs</p>
+            <h2 className="action-title">View All My Jobs</h2>
             <p className="action-desc">See detailed list of all assigned jobs</p>
           </div>
           <span className="action-arrow">›</span>
@@ -86,7 +87,7 @@ export default function TechnicianSummary({ user, jobs = [] }) {
  
         {counts.pending > 0 && (
           <div className="action-row" onClick={() => navigate("/technician/jobs")} style={{ opacity: 0.8 }}>
-            <div className="action-icon">⏳</div>
+            <div className="action-icon2" > <Clock color = "oklch(0.58 0.25 17.61)" width= "28px" height= "28px"  /> </div>
             <div className="action-text">
               <p className="action-title">Pending Jobs ({counts.pending})</p>
               <p className="action-desc">Review and start pending work</p>
@@ -108,7 +109,7 @@ export default function TechnicianSummary({ user, jobs = [] }) {
  
         {counts.total === 0 && (
           <div className="action-row" style={{ opacity: 0.5, cursor: "default" }}>
-            <div className="action-icon">📭</div>
+            <div className="action-icon"></div>
             <div className="action-text">
               <p className="action-title">No jobs assigned yet</p>
               <p className="action-desc">Your supervisor will assign jobs to you</p>
@@ -123,7 +124,7 @@ export default function TechnicianSummary({ user, jobs = [] }) {
             navigate("/settings");
           }}
         >
-          👤 Manage Settings
+          < Users color ="#2563eb"size= {20}/> Manage Settings
         </button>
       </div>
     </div>

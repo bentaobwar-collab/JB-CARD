@@ -49,6 +49,11 @@ const createJobcard = async (req, res) => {
  
 const getJobcards = async (req, res) => {
   try {
+    const supervisorId = parseInt(req.user.id);
+
+    if (!supervisorId) {
+      return res.status(400).json({ message: "Invalid supervisor ID" });
+    }
     const result = await conn.query(`
       SELECT
         jc.*,

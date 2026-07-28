@@ -19,7 +19,7 @@ const {
 } = require("../controllers/jobcardController");
 
 router.post("/",createJobcard);
-router.get("/",getJobcards);
+router.get("/", authMiddleware, getJobcards);
 router.get("/my-jobs", authMiddleware,getJobcardsByTechnician);
 router.get ("/my-customer-jobs", authMiddleware, getJobcardsByCustomer);
 router.get ("/:id/history",getJobCardHistory);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
+import { PenLine,Pencil} from "lucide-react"
 import API from "../../../api";
  
 export default function Jobcardlist({ user, jobs = [], setJobs }) {
@@ -14,9 +15,16 @@ export default function Jobcardlist({ user, jobs = [], setJobs }) {
   const [editForm, setEditForm] = useState({})
  
  useEffect(() => {
-  fetch(`${API}/jobcards`)
-    .then(res => res.json())
-    .then(data => {
+  const token = localStorage.getItem("token");
+  fetch(`${API}/jobcards`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to fetch job cards");
+      return data;
+    })
+    .then((data) => {
       const normalized = data.map(job => ({
         id: job.id,
         job_number: job.job_number,
@@ -29,20 +37,21 @@ export default function Jobcardlist({ user, jobs = [], setJobs }) {
         description: job.description,
         scheduleddate: job.scheduleddate,
         status:
-  job.status === "pending"
-    ? "Pending"
-    : job.status === "in_progress"
-    ? "In Progress"
-    : job.status === "completed"
-    ? "Completed"
-    : "Pending"
-      }))
-
-      setJobs(normalized)
+          job.status === "pending"
+            ? "Pending"
+            : job.status === "in_progress"
+            ? "In Progress"
+            : job.status === "completed"
+            ? "Completed"
+            : "Pending"
+      }));
+      setJobs(normalized);
     })
-    .catch(err => console.log(err))
-}, [])
- 
+    .catch((err) => {
+      console.log(err);
+      setJobs([]); 
+    });
+}, []);
   const filters = ["All", "Pending", "In Progress", "Completed"]
  
   const toggleDropdown = (jobId) => {
@@ -77,48 +86,33 @@ export default function Jobcardlist({ user, jobs = [], setJobs }) {
     setJobs(jobs.filter((job) => job.id !== jobId))
     if (editingJobId === jobId) cancelEditing()
     if (openDropdown === jobId) setOpenDropdown(null)
-  }
- 
- const handleStatusChange = async (jobId, newStatus) => { 
-    try {
+  }  
+   const handleStatusChange = async (jobId, newStatus) => {
+  try {
     const dbStatus =
-      newStatus === "Pending"
-        ? "pending"
-        : newStatus === "In Progress"
-        ? "in_progress"
-        : "completed";
-  const res = await fetch(
-      `${API}/jobcards/${jobId}/status`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          status: newStatus
-        })
-      }
-    )
+      newStatus === "Pending" ? "pending" :
+      newStatus === "In Progress" ? "in_progress" : "completed";
 
-    if (!res.ok)
-      throw new Error("Failed to update status")
+    const token = localStorage.getItem("token");
 
-    setJobs(
-      jobs.map(job =>
-        job.id === jobId
-          ? { ...job, status: newStatus }
-          : job
-      )
-    )
+    const res = await fetch(`${API}/jobcards/${jobId}/status`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status: newStatus }),
+    });
 
+    if (!res.ok) throw new Error("Failed to update status");
+
+    setJobs(jobs.map(job => job.id === jobId ? { ...job, status: newStatus } : job));
   } catch (err) {
-
-    console.log(err)
-
+    console.log(err);
   }
 
-  setOpenDropdown(null)
-}
+  setOpenDropdown(null);
+};
   const toggleDateEdit = (jobId) => {
     setEditingDate(editingDate === jobId ? null : jobId)
     setOpenDropdown(null)
@@ -292,8 +286,7 @@ export default function Jobcardlist({ user, jobs = [], setJobs }) {
                           <span
                             className="date-display"
                             onClick={() => toggleDateEdit(job.id)}>
-                            {job.scheduleddate?.split("T")[0]} ✎
-                          </span>
+                {job.scheduleddate?.split("T")[0]}  < PenLine size={12} color="black" />                        </span>
                         )}
                       </div>
                     )}
@@ -354,10 +347,10 @@ export default function Jobcardlist({ user, jobs = [], setJobs }) {
                         <button
                           className="btn-view"
                           onClick={() => startEditing(job)}>
-                          ✏️
+                          < Pencil size={14} color= "black" /> 
                         </button>
                         <button
-                          className="btn-view"
+                          className="btn-view" size= {14}
                           onClick={() => navigate(`/supervisor/job/${job.id}`)}>
                           View
                         </button>
