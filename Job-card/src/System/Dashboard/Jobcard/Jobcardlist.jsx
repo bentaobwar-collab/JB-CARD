@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { PenLine,Pencil} from "lucide-react"
+import { PenLine,Pencil,Download} from "lucide-react"
 import API from "../../../api";
  
 export default function Jobcardlist({ user, jobs = [], setJobs }) {
@@ -138,7 +138,38 @@ export default function Jobcardlist({ user, jobs = [], setJobs }) {
     "In Progress": jobs.filter(j => j.status === "In Progress").length,
     Completed: jobs.filter(j => j.status === "Completed").length,
   }
- 
+ const exportToCSV = () => {
+  if (!filteredJobs || filteredJobs.length === 0) return;
+  const headers = ["ID", "Job Number", "Title", "Customer", "Assigned To", "Location", "Scheduled Date", "Status"];
+
+  const rows = jobs.map((job) => [
+    job.id,
+    job.job_number,
+    job.title,
+    job.customer_name?.split("_").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" "),
+    job.assignedto?.split("_").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" "),
+    job.location,
+    job.scheduleddate?.split("T")[0] || "",
+    job.status,
+  ]);
+
+  const csvContent = [
+    headers.join(","),
+    ...rows.map((row) =>
+      row.map((field) => `"${String(field ?? "").replace(/"/g, '""')}"`).join(",")
+    ),
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", `jobcards_${new Date().toISOString().split("T")[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
   return (
     <div className="main-content">
  
@@ -195,6 +226,7 @@ export default function Jobcardlist({ user, jobs = [], setJobs }) {
           </button>
         ))}
       </div>
+      <div className = "down-load"><button className = "btn-export" onClick={exportToCSV}><Download size={14} font-weight="700" /> Export CSV file</button></div>
  
       <div className="jobcard-container">
         {filteredJobs.length > 0 ? (
