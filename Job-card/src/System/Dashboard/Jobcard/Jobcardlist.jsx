@@ -16,7 +16,7 @@ export default function Jobcardlist({ user, jobs = [], setJobs }) {
  
  useEffect(() => {
   const token = localStorage.getItem("token");
-  fetch(`${API}/jobcards`, {
+  fetch(`${API}/jobcards`,{
     headers: { Authorization: `Bearer ${token}` },
   })
     .then(async (res) => {
@@ -226,7 +226,7 @@ export default function Jobcardlist({ user, jobs = [], setJobs }) {
           </button>
         ))}
       </div>
-      <div className = "down-load"><button className = "btn-export" onClick={exportToCSV}><Download size={14} font-weight="700" /> Export CSV file</button></div>
+      <div className = "down-load"><button className = "btn-export" onClick={exportToCSV}><Download size={14} /> Export CSV file</button></div>
  
       <div className="jobcard-container">
         {filteredJobs.length > 0 ? (
